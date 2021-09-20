@@ -1,1 +1,1 @@
-# woofcoin Hello
+# woofcoin
