@@ -14,22 +14,40 @@
     <body>
         <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
             <div class="container-fluid">
-                <a class="navbar-brand" href="/">WoofCoin</a>
+                <a class="navbar-brand" href="/">Woofcoin</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nb">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="collapse navbar-collapse" id="nb">
                     <ul class="navbar-nav mr-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Buy Woofcoin</a>
+                            <a class="nav-link" href="/buy">Buy Woofcoin</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Sell Woofcoin</a>
+                            <a class="nav-link" href="/sell">Sell Woofcoin</a>
                         </li>
+                    </ul>
+                    <ul class="navbar-nav ml-auto">
+                        {% if not session.id %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/register">Register</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="/logout">Logout</a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
         </nav>
+
+        {% block precon %}{% endblock %}
+
         <div class="container">
             {% block main %}{% endblock %}
         </div>
