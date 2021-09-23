@@ -12,7 +12,7 @@
         {% block head %}{% endblock %}
     </head>
     <body>
-        <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+        <nav class="navbar navbar-expand-sm bg-secondary navbar-dark">
             <div class="container-fluid">
                 <a class="navbar-brand" href="/">Woofcoin</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nb">
@@ -48,8 +48,10 @@
 
         {% block precon %}{% endblock %}
 
-        <div class="container">
-            {% block main %}{% endblock %}
+        <div class="bg-dark">
+            <div class="container" style="height: 100vh; padding-top: 5px; color: rgb(67, 212, 67);">
+                {% block main %}{% endblock %}
+            </div>
         </div>
     </body>
 </html>
