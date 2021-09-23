@@ -1,10 +1,36 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, abort
-from flask_login import LoginManager, login_user, logout_user
+import json
+
+class Session:
+    def __init__(self, json):
+        self.data = json
+
+    def __dict__(self):
+        return self.data
+
+class User:
+    def __init__(self, json):
+        self.data = {"username": json.username, "password": json.password, "sessions": [Session(s) for s in json.sessions]}
+
+    def __dict__(self):
+        return {"username": self.data.username, "password": self.data.password, "sessions": [str(s) for s in self.data.sessions]}
+
+class Database:
+    def __init__(self, json):
+        self.data = {"users": [User(u) for u in json.users], "price": json.price}
+
+    def save(self):
+        with open("./db/index.db.json", "w") as f:
+            f.write(str(self))
+
+    def __dict__(self):
+        return {"users": [str(u) for u in self.data.users], "price": self.data.price}
+
+    def __str__(self):
+        return json.dumps(str(self))
 
 def main():
     app = Flask(__name__)
-    login_manager = LoginManager()
-    login_manager.init_app(app)
 
     @app.route("/")
     def index():
@@ -12,31 +38,17 @@ def main():
 
     @app.route('/login', methods=['GET', 'POST'])
     def login():
-        # Here we use a class of some kind to represent and validate our
-        # client-side form data. For example, WTForms is a library that will
-        # handle this for us, and we use a custom LoginForm to validate.
-        form = LoginForm()
-        if form.validate_on_submit():
-            # Login and validate the user.
-            # user should be an instance of your `User` class
-            login_user(user)
+        if (request.method == "GET"):
+            return render_template('login.html')
+        if (request.method == "POST"):
 
-            flash('Logged in successfully.')
-
-            next = request.args.get('next')
-            # is_safe_url should check if the url is safe for redirects.
-            # See http://flask.pocoo.org/snippets/62/ for an example.
-            if not is_safe_url(next):
-                return abort(400)
-
-            return redirect(next or url_for('index'))
-        return render_template('login.html', form=form)
+            return "loggin"
 
     @app.route("/logout")
     @login_required
     def logout():
         logout_user()
-        return redirect(somewhere)
+        return redirect("/")
 
     @app.route("/api/buy")
     @login_required
