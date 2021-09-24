@@ -1,0 +1,11 @@
+{
+    "users": [
+        {
+            "id": 1,
+            "username": "Ben",
+            "password": "Test"
+        }
+    ],
+
+    "price": 12.34
+}
