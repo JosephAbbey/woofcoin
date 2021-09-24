@@ -19,11 +19,14 @@ class User:
         return {"username": self.data.username, "password": self.data.password, "sessions": [str(s) for s in self.data.sessions]}
 
 class Database:
-    def __init__(self, json):
-        self.data = {"users": [User(u) for u in json.users], "price": json.price}
+    def __init__(self, file):
+        with open(file) as f:
+            data = json.loads(f.read())
+        self.data = {"users": [User(u) for u in data.users], "price": data.price}
+        self.file = file
 
     def save(self):
-        with open("./db/index.db.json", "w") as f:
+        with open(file, "w") as f:
             f.write(str(self))
 
     def __dict__(self):
@@ -35,6 +38,7 @@ class Database:
 def main():
     #Config
     app = Flask(__name__)
+    db = Database("./db/index.db.json")
 
     app.config["SESSION_PERMANENT"] = False
     app.config["SESSION_TYPE"] = "filesystem"
