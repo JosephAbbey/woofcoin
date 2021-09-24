@@ -106,5 +106,5 @@ def main():
     def mycoin():
         return "\'MYCOIN API HERE\'"
 
-    return app
+    return (db, app)
 

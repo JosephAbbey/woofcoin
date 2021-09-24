@@ -1,6 +1,10 @@
 from application import main
 
-app = main()
+db, app = main()
 
 if __name__ == "__main__":
-    app.run(port=8000)
+    try:
+        app.run(port=8000)
+    except e:
+        print(e)
+        db.save()
