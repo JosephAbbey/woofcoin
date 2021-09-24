@@ -1,39 +1,34 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, abort, session
 from flask_session import Session
 from functools import wraps
-from flask import Flask, request, render_template, redirect, url_for, flash, abort
 import json
 
-class Session:
+class User: #Individual user
     def __init__(self, json):
-        self.data = json
+        self.data = {"id": json.user_id, "username": json.username, "password": json.password} #Stores user_id, username, and password
 
-    def __dict__(self):
-        return self.data
+    def __dict__(self): #Get user as a dictionary
+        return {"username": self.data.username, "password": self.data.password}
 
-class User:
-    def __init__(self, json):
-        self.data = {"username": json.username, "password": json.password, "sessions": [Session(s) for s in json.sessions]}
+    def __str__(self): #Get user as a string
+        return json.dumps(str(self))
 
-    def __dict__(self):
-        return {"username": self.data.username, "password": self.data.password, "sessions": [str(s) for s in self.data.sessions]}
-
-class Database:
+class Database: #Database class
     def __init__(self, file):
-        with open(file) as f:
-            data = json.loads(f.read())
-        self.data = {"users": [User(u) for u in data.users], "price": data.price}
-        self.file = file
+        with open(file) as f: #Open database file
+            data = json.loads(f.read()) #Read database file to dictionary
+        self.data = {"users": [User(u) for u in data.users], "price": data.price} #Format users and Woofcoin price
+        self.file = file #Store file location
 
-    def save(self):
-        with open(file, "w") as f:
-            f.write(str(self))
-
-    def __dict__(self):
+    def __dict__(self): #Get database as a dictionary
         return {"users": [str(u) for u in self.data.users], "price": self.data.price}
 
-    def __str__(self):
+    def __str__(self): #Get database as a string
         return json.dumps(str(self))
+
+    def save(self): #Write changes to database file
+        with open(self.file, "w") as f:
+            f.write(str(self)) #Save JSON string of data
 
 def main():
     #Config
