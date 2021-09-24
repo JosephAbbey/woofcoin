@@ -1,43 +1,64 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, abort
-from flask_login import LoginManager, login_user, logout_user
+from flask import Flask, request, render_template, redirect, url_for, flash, abort, session
+from flask_session import Session
+from functools import wraps
 
 def main():
+    #Config
     app = Flask(__name__)
-    login_manager = LoginManager()
-    login_manager.init_app(app)
+
+    app.config["SESSION_PERMANENT"] = False
+    app.config["SESSION_TYPE"] = "filesystem"
+
+    Session(app)
+
+    #Decorators and helpers
+
+    get_id = lambda : session.get("id") #Get user id from session
+    empty = lambda x: not x or x == "" #Does variable exist / Is it defined
+
+    def verify_login(username, password): #Verify username and password
+        if username == "TestUsername" and password == "TestPassword": #Testing condition - REPLACE so returns ID or -1
+            return 1
+        return -1
+    
+    def login_required(func): #Decorator for account-dependant pages
+        @wraps(func)
+        def decofunc(*args, **kwargs):
+            user = get_id() #Get logged in user id
+            if user != None: #If logged in
+                return func(*args, **kwargs) #Run function
+            flash("Please log in") #Flash message
+            return redirect("/login") #Redirect
+        return decofunc
+
+    #Routes
 
     @app.route("/")
     def index():
         return render_template("index.html")
 
-    @app.route('/login', methods=['GET', 'POST'])
+    @app.route("/login", methods=["GET", "POST"])
     def login():
-        # Here we use a class of some kind to represent and validate our
-        # client-side form data. For example, WTForms is a library that will
-        # handle this for us, and we use a custom LoginForm to validate.
-        form = LoginForm()
-        if form.validate_on_submit():
-            # Login and validate the user.
-            # user should be an instance of your `User` class
-            login_user(user)
+        if request.method == "GET":
+            return render_template("login.html")
 
-            flash('Logged in successfully.')
+        form = request.form
+        un = form.get("username") #Username
+        pw = form.get("password") #Password
 
-            next = request.args.get('next')
-            # is_safe_url should check if the url is safe for redirects.
-            # See http://flask.pocoo.org/snippets/62/ for an example.
-            if not is_safe_url(next):
-                return abort(400)
+        if empty(un) or empty(pw): #Username or Password empty
+            flash("One or more fields empty")
+            return render_template("login.html", un=un, pw=pw)
 
-            return redirect(next or url_for('index'))
-        return render_template('login.html', form=form)
+        id = verify_login(un, pw) #Get id and verify login
 
-    @app.route("/logout")
-    @login_required
-    def logout():
-        logout_user()
-        return redirect(somewhere)
+        if id != -1: #Verify if successful auth
+            session["id"] = 10
+            return "VERIFIED"
 
+        flash("Login failed") #Unsuccessful auth
+        return render_template("login.html", un=un, pw=pw)
+        
     @app.route("/api/buy")
     @login_required
     def buy():

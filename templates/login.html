@@ -4,4 +4,18 @@
 
 {% block main %}
     <h1>Login page</h1>
+
+    <form method="POST" action="/login">
+        <div class="form-group">
+			<label for="unField">Username</label>
+			<input autocomplete="off" type="text" name="username" placeholder="Username" id="unField" class="form-control" value="{{ un }}">
+		</div>
+
+		<div class="form-group">
+			<label for="pwField">Password</label>
+			<input autocomplete="off" type="password" name="password" placeholder="Password" id="pwField" class="form-control" value="{{ pw }}">
+		</div>
+
+		<button type="submit" class="btn btn-primary">Login</button>
+    </form>
 {% endblock %}
