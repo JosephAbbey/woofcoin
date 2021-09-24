@@ -30,6 +30,12 @@ class Database: #Database class
         with open(self.file, "w") as f:
             f.write(str(self)) #Save JSON string of data
 
+    def verify_login(self, username, password): #Verify username and password
+        for u in self.data["users"]: #Linear search
+            if username == u.data["username"] and password == u.data["password"]: #Verify
+                return u.data["id"] #Return id
+        return -1
+
 def main():
     #Config
     app = Flask(__name__)
@@ -44,11 +50,6 @@ def main():
 
     get_id = lambda : session.get("id") #Get user id from session
     empty = lambda x: not x or x == "" #Does variable exist / Is it defined
-
-    def verify_login(username, password): #Verify username and password
-        if username == "TestUsername" and password == "TestPassword": #Testing condition - REPLACE so returns ID or -1
-            return 1
-        return -1
     
     def login_required(func): #Decorator for account-dependant pages
         @wraps(func)
@@ -82,10 +83,12 @@ def main():
         id = verify_login(un, pw) #Get id and verify login
 
         if id != -1: #Verify if successful auth
+            #Successful
             session["id"] = 10
             return "VERIFIED"
-
-        flash("Login failed") #Unsuccessful auth
+        
+        #Unsuccessful auth
+        flash("Login failed")
         return render_template("login.html", un=un, pw=pw)
         
     @app.route("/api/buy")
