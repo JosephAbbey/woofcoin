@@ -80,7 +80,7 @@ def main():
             flash("One or more fields empty")
             return render_template("login.html", un=un, pw=pw)
 
-        id = verify_login(un, pw) #Get id and verify login
+        id = db.verify_login(un, pw) #Get id and verify login
 
         if id != -1: #Verify if successful auth
             #Successful
