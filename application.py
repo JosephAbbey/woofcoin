@@ -3,12 +3,15 @@ from flask_session import Session
 from functools import wraps
 import json
 
+#Needed by functions not in main scope
+empty = lambda x: not x or x == "" #Does variable exist / Is it defined
+
 class User: #Individual user
     def __init__(self, json):
-        self.data = {"id": json["user_id"], "username": json["username"], "password": json["password"]} #Stores user_id, username, and password
+        self.data = {"user_id": json["user_id"], "username": json["username"], "password": json["password"]} #Stores user_id, username, and password
 
     def __dict__(self): #Get user as a dictionary
-        return {"username": self.data["username"], "password": self.data["password"]}
+        return self.data
 
     def __str__(self): #Get user as a string
         return json.dumps(self.data)
@@ -18,38 +21,58 @@ class Database: #Database class
         with open(file) as f: #Open database file
             data = json.loads(f.read()) #Read database file to dictionary
         self.data = {"users": [User(u) for u in data["users"]], "price": data["price"]} #Format users and Woofcoin price
+        self.sortedUsers = sorted(self.data["users"], key=lambda x: x.data["username"])
         self.file = file #Store file location
 
     def __dict__(self): #Get database as a dictionary
         return {"users": [str(u) for u in self.data["users"]], "price": self.data["price"]}
 
     def __str__(self): #Get database as a string
-        return json.dumps({"users": [str(u) for u in self.data["users"]], "price": self.data["price"]}).replace("\\\"", "\"")
+        return json.dumps({"users": [str(u) for u in self.data["users"]], "price": self.data["price"]})
 
     def save(self): #Write changes to database file
         with open(self.file, "w") as f:
             f.write(str(self)) #Save JSON string of data
 
-    def userExists(self, username): #True if user exists
-        for u in self.data["users"]: #Linear search
-            if username == u.data["username"]: #Verify
-                return True
-        return False
+    def verify_login(self, username, password=None, low=0, high=len(self.sortedUsers)-1): #Verify username and password
+        #Binary Search
+        if high >= low:
+            mid = (high+low) // 2
 
-    def verify_login(self, username, password): #Verify username and password
-        for u in self.data["users"]: #Linear search
-            if username == u.data["username"] and password == u.data["password"]: #Verify
-                return u.data["id"] #Return id
-        return -1
+            if self.sortedUsers[mid]["username"] == username: #Username found
+                if self.sortedUsers[mid]["password"] == password:
+                    return self.sortedUsers[mid]["user_id"]
+                return -2 #Password incorrect
+
+            elif self.sortedUsers[mid]["username"] > username:
+                return self.verify_login(username, password, low, mid-1)
+
+            return self.verify_login(username, password, mid+1, high)
+
+        return -1 #Not found
     
     def max_id(self): #Get largest ID
         length = len(self.data["users"])
         if length == 0:
             return 1
-        return self.data["users"][length - 1]["id"] + 1
+        return self.data["users"][length - 1]["user_id"] + 1
     
     def add_user(self, username, password): #Add new user to DB
-        print("TODO")
+        if empty(username) or empty(password):
+            return False
+
+        getuser = self.verify_login(username)
+        if getuser == -2: #If user exists
+            return False
+        
+        id = self.max_id() #Get next highest ID
+        u = User({"user_id": id, "username": username, "password": password}) #Create new user object
+
+        self.data["users"].append(u) #Add user object to self.data
+        self.sortedUsers = sorted(self.data["users"], key=lambda x: x.data["username"]) #Re-sort users for binary search
+        self.save()
+
+        return True
 
 def main():
     #Config
@@ -64,7 +87,6 @@ def main():
     #Decorators and helpers
 
     get_id = lambda : session.get("id") #Get user id from session
-    empty = lambda x: not x or x == "" #Does variable exist / Is it defined
     
     def login_required(func): #Decorator for account-dependant pages
         @wraps(func)
@@ -98,7 +120,7 @@ def main():
 
         id = db.verify_login(un, pw) #Get id and verify login
 
-        if id != -1: #Verify if successful auth
+        if id > -1: #Verify if successful auth
             #Successful
             session["id"] = id
             return redirect("/")

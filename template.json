@@ -4,6 +4,16 @@
             "user_id": 1,
             "username": "Ben",
             "password": "Test"
+        },
+        {
+            "user_id": 2,
+            "username": "A",
+            "password": "Test"
+        },
+        {
+            "user_id": 3,
+            "username": "Joseph",
+            "password": "Test"
         }
     ],
 
