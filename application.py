@@ -168,6 +168,16 @@ def main():
         session.clear()
         return redirect("/")
         
+    @app.route("/api/debug/db")
+    @login_required
+    def debug_db(user_id):
+        return str(db)
+
+    @app.route("/api/debug/user_id")
+    @login_required
+    def debug_user_id(user_id):
+        return str(user_id)
+        
     @app.route("/api/buy")
     @login_required
     def buy(user_id):
