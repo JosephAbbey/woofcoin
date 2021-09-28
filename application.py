@@ -34,17 +34,20 @@ class Database: #Database class
         with open(self.file, "w") as f:
             f.write(str(self)) #Save JSON string of data
 
-    def verify_login(self, username, password=None, low=0, high=len(self.sortedUsers)-1): #Verify username and password
+    def verify_login(self, username, password=None, low=0, high=None): #Verify username and password
         #Binary Search
+        if empty(high):
+            high = len(self.sortedUsers)-1
+
         if high >= low:
             mid = (high+low) // 2
 
-            if self.sortedUsers[mid]["username"] == username: #Username found
-                if self.sortedUsers[mid]["password"] == password:
-                    return self.sortedUsers[mid]["user_id"]
+            if self.sortedUsers[mid].data["username"] == username: #Username found
+                if self.sortedUsers[mid].data["password"] == password:
+                    return self.sortedUsers[mid].data["user_id"]
                 return -2 #Password incorrect
 
-            elif self.sortedUsers[mid]["username"] > username:
+            elif self.sortedUsers[mid].data["username"] > username:
                 return self.verify_login(username, password, low, mid-1)
 
             return self.verify_login(username, password, mid+1, high)
@@ -55,7 +58,7 @@ class Database: #Database class
         length = len(self.data["users"])
         if length == 0:
             return 1
-        return self.data["users"][length - 1]["user_id"] + 1
+        return self.data["users"][length - 1].data["user_id"] + 1
     
     def add_user(self, username, password): #Add new user to DB
         if empty(username) or empty(password):
@@ -160,7 +163,8 @@ def main():
         return render_template("register.html", un=un, pw1=pw1, pw2=pw2)
     
     @app.route("/logout")
-    def logout():
+    @login_required
+    def logout(user_id):
         session.clear()
         return redirect("/")
         
