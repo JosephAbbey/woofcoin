@@ -10,9 +10,6 @@ class User: # Individual user
     def __init__(self, json):
         self.data = json #Stores user_id, username, and password
 
-    def __dict__(self): # Get user as a dictionary
-        return self.data
-
     def __str__(self): # Get user as a string
         return json.dumps(self.data)
 
@@ -25,10 +22,10 @@ class Database: # Database class
         self.file = file # Store file location
 
     def __dict__(self): # Get database as a dictionary
-        return {"users": [str(u) for u in self.data["users"]], "price": self.data["price"]}
+        return {"users": [u.data for u in self.data["users"]], "price": self.data["price"]}
 
     def __str__(self): # Get database as a string
-        return json.dumps({"users": [str(u) for u in self.data["users"]], "price": self.data["price"]})
+        return json.dumps({"users": [u.data for u in self.data["users"]], "price": self.data["price"]})
 
     def save(self): # Write changes to database file
         with open(self.file, "w") as f:
