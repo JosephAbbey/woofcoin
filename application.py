@@ -59,11 +59,11 @@ class Database: #Database class
     
     def add_user(self, username, password): #Add new user to DB
         if empty(username) or empty(password):
-            return False
+            return -1
 
         getuser = self.verify_login(username)
         if getuser == -2: #If user exists
-            return False
+            return -1
         
         id = self.max_id() #Get next highest ID
         u = User({"user_id": id, "username": username, "password": password}) #Create new user object
@@ -72,7 +72,7 @@ class Database: #Database class
         self.sortedUsers = sorted(self.data["users"], key=lambda x: x.data["username"]) #Re-sort users for binary search
         self.save()
 
-        return True
+        return id
 
 def main():
     #Config
@@ -148,9 +148,10 @@ def main():
             flash("One or more fields empty")
             return render_template("register.html", un=un, pw1=pw1, pw2=pw2)
         
-        if not db.userExists(un): #Verify if successful auth
+            
+        id = db.add_user(un, pw1)
+        if id > -1:
             #Successful
-            id = db.add_user(un, pw1)
             session["id"] = id
             return redirect("/")
         
