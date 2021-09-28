@@ -8,7 +8,7 @@ empty = lambda x: not x or x == "" # Does variable exist / Is it defined
 
 class User: # Individual user
     def __init__(self, json):
-        self.data = {"user_id": json["user_id"], "username": json["username"], "password": json["password"]} #Stores user_id, username, and password
+        self.data = json #Stores user_id, username, and password
 
     def __dict__(self): # Get user as a dictionary
         return self.data
