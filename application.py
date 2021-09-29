@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, abort, session
+from flask import Flask, request, render_template, redirect, url_for, flash, abort, session, jsonify
 from flask_session import Session
 from functools import wraps
 import json
@@ -8,13 +8,13 @@ empty = lambda x: not x or x == "" # Does variable exist / Is it defined
 
 class User: # Individual user
     def __init__(self, json):
-        self.data = json #Stores user_id, username, and password
+        self.data = json # Stores user_id, username, and password
 
     def __dict__(self): # Get user as a dictionary
         return self.data
 
     def __str__(self): # Get user as a string
-        return json.dumps(self.data)
+        return json.dumps(self.__dict__())
 
 class Database: # Database class
     def __init__(self, file):
@@ -25,10 +25,10 @@ class Database: # Database class
         self.file = file # Store file location
 
     def __dict__(self): # Get database as a dictionary
-        return {"users": [str(u) for u in self.data["users"]], "price": self.data["price"]}
+        return {"users": [u.__dict__() for u in self.data["users"]], "price": self.data["price"]}
 
     def __str__(self): # Get database as a string
-        return json.dumps({"users": [str(u) for u in self.data["users"]], "price": self.data["price"]})
+        return json.dumps(self.__dict__())
 
     def save(self): # Write changes to database file
         with open(self.file, "w") as f:
@@ -171,7 +171,7 @@ def main():
     @app.route("/api/debug/db")
     @login_required
     def debug_db(user_id):
-        return str(db)
+        return jsonify(**db.__dict__())
 
     @app.route("/api/debug/user_id")
     @login_required
