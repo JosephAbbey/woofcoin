@@ -1,3 +1,4 @@
 __pycache__/
 db/
 flask_session/
+mysetup.py

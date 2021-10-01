@@ -2,6 +2,39 @@
 
 {% block title %}Homepage{% endblock %}
 
+{% block head %}
+    <script>
+        //window.onload = function() {
+        //    var chart = new CanvasJS.Chart("ChartContainer",{
+        //        animationEnabled: true,
+        //        zoomEnabled: true,
+        //        title: {
+        //            text: "Exchange rate"
+        //        },
+        //        data: data
+        //    });
+        //    chart.render();
+        //}
+
+        var data = [];
+        var dataSeries = { type: "line" };
+        var dataPoints = [];
+
+        //AJAX Here to populate datapoints array
+        $.post("/api/rates",
+            {
+                frame: "week"
+            },
+            function(data, status) {
+                alert("Data: " + JSON.parse(data) + "\nStatus: " + status);
+            }
+        );
+
+        //dataSeries.dataPoints = dataPoints;
+        //data.push(dataSeries);
+    </script>
+{% endblock %}
+
 {% block precon %}
     <div class="jumbotron text-center" style="margin-bottom: 0px;">
         <h1>Woofcoin</h1>
@@ -10,4 +43,8 @@
 
 {% block main %}
     <h1>Index page</h1>
+
+    <div>
+        <canvas id="rate"></canvas>
+    </div>
 {% endblock %}

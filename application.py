@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, abort, session
+from flask import Flask, request, render_template, redirect, url_for, flash, abort, session, jsonify
 from flask_session import Session
 from functools import wraps
 import json
@@ -25,7 +25,7 @@ class Database: # Database class
         return {"users": [u.data for u in self.data["users"]], "price": self.data["price"]}
 
     def __str__(self): # Get database as a string
-        return json.dumps({"users": [u.data for u in self.data["users"]], "price": self.data["price"]})
+        return json.dumps({"users": [u.data for u in self.data["users"]], "price": self.data["price"]}, indent=4)
 
     def save(self): # Write changes to database file
         with open(self.file, "w") as f:
@@ -94,7 +94,7 @@ def main():
             user = get_id() # Get logged in user id
             if user != None: # If logged in
                 return func(user, *args, **kwargs) # Run function
-            flash("Please log in") # Flash message
+            flash("Please log in", "warn") # Flash message
             return redirect("/login") # Redirect
         return decofunc
 
@@ -115,7 +115,7 @@ def main():
         pw = form.get("password") # Password
 
         if empty(un) or empty(pw): # Username or Password empty
-            flash("One or more fields empty")
+            flash("One or more fields empty", "warn")
             return render_template("login.html", un=un, pw=pw)
 
         id = db.verify_login(un, pw) # Get id and verify login
@@ -126,7 +126,7 @@ def main():
             return redirect("/")
         
         # Unsuccessful auth
-        flash("Login failed")
+        flash("Login failed", "warn")
         return render_template("login.html", un=un, pw=pw)
     
     @app.route("/register", methods=["GET", "POST"])
@@ -141,11 +141,11 @@ def main():
         pw2 = form.get("password2")
 
         if pw1 != pw2: # Passwords don't match
-            flash("Passwords do not match")
+            flash("Passwords do not match", "warn")
             return render_template("register.html", un=un, pw1=pw1, pw2=pw2)
 
         if empty(un) or empty(pw1): # Username or Password empty
-            flash("One or more fields empty")
+            flash("One or more fields empty", "warn")
             return render_template("register.html", un=un, pw1=pw1, pw2=pw2)
         
         id = db.add_user(un, pw1)
@@ -156,7 +156,7 @@ def main():
             return redirect("/")
         
         # Unsuccessful auth
-        flash("User already exists")
+        flash("User already exists", "warn")
         return render_template("register.html", un=un, pw1=pw1, pw2=pw2)
     
     @app.route("/logout")
@@ -164,6 +164,20 @@ def main():
     def logout(user_id):
         session.clear()
         return redirect("/")
+
+    @app.route("/api/rates", methods=["POST"])
+    def rates():
+        frame = request.form.get("frame") # Time frame
+        frames = ["day", "week", "month"] # Accepted frames
+
+        if empty(frame) or frame not in frames:
+            frame = "week" # Default frame
+
+        id = frames.index(frame)
+        if id == 0:
+            return jsonify({10: 2, 15: 3})
+
+        return jsonify({5: 2, 10: 3})
         
     @app.route("/api/buy")
     @login_required
