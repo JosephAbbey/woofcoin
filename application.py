@@ -8,10 +8,10 @@ empty = lambda x: not x or x == "" # Does variable exist / Is it defined
 
 class User: # Individual user
     def __init__(self, json):
-        self.data = json #Stores user_id, username, and password
+        self.data = json # Stores user_id, username, and password
 
     def __str__(self): # Get user as a string
-        return json.dumps(self.data)
+        return json.dumps(self.__dict__())
 
 class Database: # Database class
     def __init__(self, file):
@@ -178,6 +178,16 @@ def main():
             return jsonify({10: 2, 15: 3})
 
         return jsonify({5: 2, 10: 3})
+        
+    @app.route("/api/debug/db")
+    @login_required
+    def debug_db(user_id):
+        return jsonify(**db.__dict__())
+
+    @app.route("/api/debug/user_id")
+    @login_required
+    def debug_user_id(user_id):
+        return str(user_id)
         
     @app.route("/api/buy")
     @login_required

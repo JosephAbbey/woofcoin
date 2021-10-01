@@ -3,17 +3,20 @@
         {
             "user_id": 1,
             "username": "Ben",
-            "password": "Test"
+            "password": "Test",
+            "coin": 0
         },
         {
             "user_id": 2,
             "username": "A",
-            "password": "Test"
+            "password": "Test",
+            "coin": 0
         },
         {
             "user_id": 3,
             "username": "Joseph",
-            "password": "Test"
+            "password": "Test",
+            "coin": 0
         }
     ],
 
