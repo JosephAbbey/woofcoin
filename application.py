@@ -6,12 +6,55 @@ import json
 # Needed by functions not in main scope
 empty = lambda x: not x or x == "" # Does variable exist / Is it defined
 
+def getUserFunc(obj, **kwargs):
+    if obj.data["user_id"] == kwargs["id"]:
+        return obj
+    elif obj.data["user_id"] > kwargs["id"]:
+        return -3 # Rerun call (low, mid-1)
+    return -4 # Rerun call (mid+1, high)
+
+def verifUserFunc(obj, **kwargs):
+    if obj.data["username"] == kwargs["username"]:
+        if obj.data["password"] == kwargs["password"]:
+            return obj.data["user_id"] # Correct password
+        return -2 # Wrong password
+    elif obj.data["username"] > kwargs["username"]:
+        return -3 # Rerun call (low, mid-1)
+    return -4 # Rerun call (mid+1, high)
+
+# Generalized binary search
+def binarySearch(arr, Func, low=0, high=-1, **kwargs):
+    high = len(arr)-1 if high == -1 else high # Using none as a placeholder causes an edge case to occur where the range gets stuck on 0:2 as the high var always gets reset
+
+    if high >= low: # If range of search includes at least one item
+        mid = (high+low) // 2 # Get midpoint of range
+        midObj = arr[mid] # Get midpoint item
+        
+        ret = Func(midObj, **kwargs) # Comparison function
+
+        if ret == -3:
+            return binarySearch(arr, Func, low, mid-1, **kwargs)
+        elif ret == -4:
+            return binarySearch(arr, Func, mid+1, low, **kwargs)
+        return ret
+
+    return -1 # Not found
+
 class User: # Individual user
     def __init__(self, json):
         self.data = json # Stores user_id, username, and password
 
     def __str__(self): # Get user as a string
-        return json.dumps(self.__dict__())
+        return json.dumps(self.data)
+
+    def queryCoin(self):
+        return self.data["coin"]
+
+    def addCoin(self, coins):
+        self.data["coin"] = self.queryCoin() + coins
+
+    def resetCoins(self):
+        self.data["coin"] -= self.queryCoin()
 
 class Database: # Database class
     def __init__(self, file):
@@ -31,25 +74,13 @@ class Database: # Database class
         with open(self.file, "w") as f:
             f.write(str(self)) # Save JSON string of data
 
-    def verify_login(self, username, password=None, low=0, high=None): #Verify username and password
-        #Binary Search
-        if empty(high):
-            high = len(self.sortedUsers)-1
+    def get_user_obj(self, id): # Try to merge with get_user
+        # Binary search
+        return binarySearch(self.data["users"], getUserFunc, id=id)
 
-        if high >= low:
-            mid = (high+low) // 2
-
-            if self.sortedUsers[mid].data["username"] == username: #Username found
-                if self.sortedUsers[mid].data["password"] == password:
-                    return self.sortedUsers[mid].data["user_id"]
-                return -2 #Password incorrect
-
-            elif self.sortedUsers[mid].data["username"] > username:
-                return self.verify_login(username, password, low, mid-1)
-
-            return self.verify_login(username, password, mid+1, high)
-
-        return -1 # Not found
+    def get_user(self, username, password=None, low=0, high=None): # Verify username and password (and does tons of other things)
+        # Binary Search
+        return binarySearch(self.sortedUsers, verifUserFunc, username=username, password=password)
     
     def max_id(self): # Get largest ID
         length = len(self.data["users"])
@@ -61,7 +92,7 @@ class Database: # Database class
         if empty(username) or empty(password):
             return -1
 
-        getuser = self.verify_login(username)
+        getuser = self.get_user(username)
         if getuser == -2: # If user exists
             return -1
         
@@ -76,6 +107,7 @@ class Database: # Database class
 
 def main():
     # Config
+
     app = Flask(__name__)
     db = Database("template.json")
 
@@ -91,7 +123,7 @@ def main():
     def login_required(func): # Decorator for account-dependant pages
         @wraps(func)
         def decofunc(*args, **kwargs):
-            user = get_id() # Get logged in user id
+            user = db.get_user_obj(get_id()) # Get logged in user id
             if user != None: # If logged in
                 return func(user, *args, **kwargs) # Run function
             flash("Please log in", "warn") # Flash message
@@ -118,7 +150,7 @@ def main():
             flash("One or more fields empty", "warn")
             return render_template("login.html", un=un, pw=pw)
 
-        id = db.verify_login(un, pw) # Get id and verify login
+        id = db.get_user(un, pw) # Get id and verify login
 
         if id > -1: # Verify if successful auth
             # Successful
@@ -181,28 +213,34 @@ def main():
         
     @app.route("/api/debug/db")
     @login_required
-    def debug_db(user_id):
-        return jsonify(**db.__dict__())
+    def debug_db(user):
+        return jsonify(db.__dict__())
 
     @app.route("/api/debug/user_id")
     @login_required
-    def debug_user_id(user_id):
-        return str(user_id)
-        
+    def debug_user_id(user):
+        return str(user.data["user_id"])
+
+    @app.route("/api/debug/addcoin")
+    @login_required
+    def debug_coins(user):
+        user.addCoin(10)
+        db.save()
+        return "{user}'s coins: {total}".format(user=user.data["username"], total=str(user.queryCoin()))
+
     @app.route("/api/buy")
     @login_required
-    def buy(user_id):
+    def buy(user):
         return str(db)
 
     @app.route("/api/sell")
     @login_required
-    def sell(user_id):
-        return str(user_id)
+    def sell(user):
+        return str(user)
 
     @app.route("/api/mycoin")
     @login_required
-    def mycoin(user_id):
+    def mycoin(user):
         return "\'MYCOIN API HERE\'"
 
     return (db, app)
-
