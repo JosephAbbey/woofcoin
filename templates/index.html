@@ -4,17 +4,17 @@
 
 {% block head %}
     <script>
-        //window.onload = function() {
-        //    var chart = new CanvasJS.Chart("ChartContainer",{
-        //        animationEnabled: true,
-        //        zoomEnabled: true,
-        //        title: {
-        //            text: "Exchange rate"
-        //        },
-        //        data: data
-        //    });
-        //    chart.render();
-        //}
+        window.onload = function() {
+            var chart = new CanvasJS.Chart("rate",{
+                animationEnabled: true,
+                zoomEnabled: true,
+                title: {
+                    text: "Exchange rate"
+                },
+                data: data
+            });
+            chart.render();
+        }
 
         var data = [];
         var dataSeries = { type: "line" };
@@ -30,8 +30,8 @@
             }
         );
 
-        //dataSeries.dataPoints = dataPoints;
-        //data.push(dataSeries);
+        dataSeries.dataPoints = dataPoints;
+        data.push(dataSeries);
     </script>
 {% endblock %}
 
